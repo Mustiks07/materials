@@ -95,6 +95,17 @@ for num,f,label,slug,spec in UMAP:
     variants[num]={'source':'ust.kz','url':f'https://ust.kz/word/{slug}.html',
                    'label':label,'keys':'дереккөздегі «+» белгісі','blocks':blocks}
 
+# ── 5. қайталанған тапсырмаларды ауыстыру ──
+for (vn, qn), rep in edits.REPLACE.items():
+    i = 0
+    for b in variants[vn]['blocks']:
+        for k, q in enumerate(b['questions']):
+            i += 1
+            if i == qn:
+                b['questions'][k] = {'q': rep['q'], 'answers': rep['answers'],
+                                     'key': rep['key'], 'derived': rep['derived'],
+                                     'src': ('replaced', rep['src_url'])}
+
 # ── тексеру ──
 for n in sorted(variants):
     v=variants[n]

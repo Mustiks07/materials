@@ -23,6 +23,14 @@ NOTE_V10=('> **Ескерту.** Дереккөздегі 10-нұсқада 7 б
           'қосылды. Тапсырмалардың мәтіні өзгерген жоқ.\n')
 NOTES={7:NOTE_V7,9:NOTE_V9,10:NOTE_V10}
 
+
+def undefined_legend(q):
+    """Сәйкестендіру тапсырмасының легендасы мәтінде анықталмаған ба?"""
+    opts=' '.join(q['answers'])
+    refs=set(re.findall(r'[-–]([A-EА-ЕӘ])', opts))
+    txt=q['q']
+    return bool(refs) and all(not re.search(rf'(^|[\s(]){re.escape(r)}[\s.)—–-]', txt) for r in refs)
+
 def keytable(keys):
     L=[]
     for a,b in ((0,10),(10,20)):
@@ -68,13 +76,19 @@ for num in sorted(V,key=int):
             n+=1
             L.append(f'**{n}.** {q["q"]}\n')
             for i,a in enumerate(q['answers']): L.append(f'- **{LET[i]})** {a}')
+            note_dup = edits.DUPLICATE_NOTE.get((num, n))
+            if note_dup:
+                L.append(f'\n> ⚠️ {note_dup}')
             if q['derived']:
                 L.append(f'\n> 🔎 **Жауап дереккөзде белгіленбеген.** Дұрыс жауап — **{q["key"]}**. '
                          f'{q["derived"]}')
                 derived.append(n)
-            elif PICREF.search(q['q']):
+            elif not b.get('images') and PICREF.search(q['q']):
                 L.append('\n> ⚠️ Тапсырма картаға / кестеге / суретке сілтейді. Дереккөздің ашық '
                          'көрінісінде кескін берілмеген, сондықтан мәтіні ғана келтірілді.')
+            elif not b.get('images') and 'әйкестендір' in q['q'] and undefined_legend(q):
+                L.append('\n> ⚠️ Сәйкестендіру кестесі дереккөздің ашық көрінісінде берілмеген: '
+                         'жауап нұсқаларындағы белгілердің мәні көрсетілмеген.')
             L.append('')
             keys.append(q['key'])
         L.append('---\n')
